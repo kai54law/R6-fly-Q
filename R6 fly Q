@@ -1,4 +1,4 @@
-print("local player = game.Players.LocalPlayer
+local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid")
 local userInputService = game:GetService("UserInputService")
@@ -120,4 +120,4 @@ end)
 -- Atualiza a rotação do personagem para seguir o mouse enquanto voando
 game:GetService("RunService").Heartbeat:Connect(function()
     followMouse()  -- Atualiza a rotação para seguir o mouse
-end")
+end)

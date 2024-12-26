@@ -120,5 +120,4 @@ end)
 -- Atualiza a rotação do personagem para seguir o mouse enquanto voando
 game:GetService("RunService").Heartbeat:Connect(function()
     followMouse()  -- Atualiza a rotação para seguir o mouse
-end)
-")
+end")

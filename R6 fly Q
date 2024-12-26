@@ -1,0 +1,124 @@
+print(*local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local userInputService = game:GetService("UserInputService")
+local camera = game.Workspace.CurrentCamera
+
+local flying = false  -- Estado de voo
+local speed = 50  -- Velocidade de voo
+local bodyVelocity = nil
+local bodyGyro = nil
+local velocity = Vector3.new(0, 0, 0)
+local mouse = player:GetMouse()
+
+-- Função para ativar o voo
+local function startFlying()
+    if flying then return end
+    flying = true
+
+    -- Desabilitar gravidade e ajustar o comportamento físico para voo
+    humanoid.PlatformStand = true  -- Desabilita o movimento automático do personagem
+    
+    -- Criar BodyVelocity para controlar a velocidade de voo
+    bodyVelocity = Instance.new("BodyVelocity")
+    bodyVelocity.MaxForce = Vector3.new(100000, 100000, 100000)  -- Força máxima
+    bodyVelocity.Velocity = Vector3.new(0, 0, 0)  -- Inicializando com zero
+    bodyVelocity.Parent = character:WaitForChild("HumanoidRootPart")
+    
+    -- Criar BodyGyro para controlar a rotação do personagem
+    bodyGyro = Instance.new("BodyGyro")
+    bodyGyro.MaxTorque = Vector3.new(400000, 400000, 400000)  -- Força máxima para rotação
+    bodyGyro.CFrame = character.HumanoidRootPart.CFrame
+    bodyGyro.Parent = character:WaitForChild("HumanoidRootPart")
+end
+
+-- Função para desativar o voo
+local function stopFlying()
+    if not flying then return end
+    flying = false
+    
+    -- Restaurar as configurações de movimento normais
+    humanoid.PlatformStand = false
+    if bodyVelocity then
+        bodyVelocity:Destroy()  -- Remove a BodyVelocity
+    end
+    if bodyGyro then
+        bodyGyro:Destroy()  -- Remove a BodyGyro
+    end
+end
+
+-- Função para rotacionar o personagem para olhar na direção do mouse
+local function followMouse()
+    if flying then
+        -- Pega a posição do mouse no mundo 3D
+        local mousePosition = mouse.Hit.p
+        local characterPosition = character.HumanoidRootPart.Position
+        
+        -- Ajusta a rotação do personagem para olhar para a posição do mouse
+        bodyGyro.CFrame = CFrame.new(characterPosition, mousePosition)
+    end
+end
+
+-- Função para mover o jogador
+local moveDirection = Vector3.new(0, 0, 0)  -- Direção do movimento
+local movementInput = Vector3.new(0, 0, 0)
+
+local function updateMovement(input)
+    if flying then
+        local cameraDirection = camera.CFrame.LookVector  -- Direção que a câmera está olhando
+        local rightDirection = camera.CFrame.RightVector  -- Direção da direita da câmera
+        local upDirection = camera.CFrame.UpVector  -- Direção para cima da câmera
+
+        -- Mapeia as teclas W, A, S, D para as direções
+        if input.KeyCode == Enum.KeyCode.W then
+            movementInput = cameraDirection  -- Movimento para frente
+        elseif input.KeyCode == Enum.KeyCode.S then
+            movementInput = -cameraDirection  -- Movimento para trás
+        elseif input.KeyCode == Enum.KeyCode.A then
+            movementInput = -rightDirection  -- Movimento para a esquerda
+        elseif input.KeyCode == Enum.KeyCode.D then
+            movementInput = rightDirection  -- Movimento para a direita
+        end
+
+        -- Atualiza a velocidade com base na direção do movimento
+        bodyVelocity.Velocity = (movementInput * speed) + Vector3.new(0, velocity.Y, 0)
+    end
+end
+
+-- Função para parar o movimento quando a tecla for liberada
+local function stopMovement(input)
+    if flying then
+        if input.KeyCode == Enum.KeyCode.W or input.KeyCode == Enum.KeyCode.S or
+           input.KeyCode == Enum.KeyCode.A or input.KeyCode == Enum.KeyCode.D then
+            movementInput = Vector3.new(0, 0, 0)  -- Parar o movimento
+            bodyVelocity.Velocity = (movementInput * speed) + Vector3.new(0, velocity.Y, 0)
+        end
+    end
+end
+
+-- Detecta o pressionamento da tecla "Q" para alternar o voo
+userInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end  -- Ignorar entradas processadas por outros sistemas
+    
+    if input.KeyCode == Enum.KeyCode.Q then
+        if flying then
+            stopFlying()  -- Se estiver voando, desativa o voo
+        else
+            startFlying()  -- Se não estiver voando, ativa o voo
+        end
+    end
+    
+    -- Detecta movimento com as teclas W, A, S, D
+    updateMovement(input)
+end)
+
+-- Detecta quando a tecla é liberada para parar o movimento
+userInputService.InputEnded:Connect(function(input)
+    stopMovement(input)
+end)
+
+-- Atualiza a rotação do personagem para seguir o mouse enquanto voando
+game:GetService("RunService").Heartbeat:Connect(function()
+    followMouse()  -- Atualiza a rotação para seguir o mouse
+end)
+*)
